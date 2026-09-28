@@ -1,0 +1,221 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thai Travel Path Finder</title>
+  <link rel="stylesheet" href="อาหาร.css">
+</head>
+<body>
+
+<header class="header">
+  <a class="logo" href="#home">🗺️ Travel Finder</a>
+  <nav>
+    <a href="#home">หน้าแรก</a>
+    <a href="#map-section">แผนที่</a>
+    <a href="#algorithm">Graph Theory</a>
+    <a href="#places">สถานที่ท่องเที่ยว</a>
+  </nav>
+</header>
+
+<section class="hero" id="home">
+  <div class="hero-content">
+    <span class="tag">DISCRETE MATHEMATICS PROJECT</span>
+    <h1>ค้นหาเส้นทาง<br>ท่องเที่ยวทั่วประเทศไทย</h1>
+    <p>เรียนรู้ทฤษฎีกราฟ BFS, DFS, Weighted Graph และ Dijkstra ผ่านแผนที่จำลองที่สร้างขึ้นเอง</p>
+    <a class="main-btn" href="#map-section">เริ่มค้นหาเส้นทาง</a>
+  </div>
+</section>
+
+<main class="container">
+
+  <section class="section-title" id="map-section">
+    <h2>แผนที่ประเทศไทยจำลอง</h2>
+    <p>เลือกจุดสถานที่บนแผนที่หรือเลือกจากรายการ เพื่อค้นหาเส้นทาง</p>
+  </section>
+
+  <section class="map-layout">
+    <div class="map-card">
+      <div class="map-top">
+        <div>
+          <h3>แผนที่ท่องเที่ยว</h3>
+          <p>แผนที่ SVG สร้างขึ้นเอง</p>
+        </div>
+        <span class="live-label">● พร้อมใช้งาน</span>
+      </div>
+
+      <div class="map-scroll">
+        <svg id="travelMap" viewBox="0 0 700 850"
+             xmlns="http://www.w3.org/2000/svg"
+             aria-label="แผนที่ประเทศไทยจำลอง">
+
+          <defs>
+            <pattern id="grid" width="35" height="35"
+                     patternUnits="userSpaceOnUse">
+              <path d="M35 0H0V35" fill="none"
+                    stroke="#dbe8e2" stroke-width="1"/>
+            </pattern>
+          </defs>
+
+          <rect width="700" height="850" fill="#eaf6fa"/>
+          <rect width="700" height="850" fill="url(#grid)"/>
+
+          <!-- รูปร่างประเทศไทยแบบจำลอง -->
+          <path class="land"
+            d="M205 45 L275 65 330 110 375 130
+            410 180 450 205 475 255 450 300
+            425 340 390 370 360 415 345 455
+            355 490 375 530 365 575 345 620
+            335 670 350 710 330 755 310 805
+            285 825 265 790 270 750 260 705
+            245 665 230 625 220 580 205 545
+            190 500 175 465 155 435 140 395
+            120 360 115 320 125 280 145 245
+            155 205 170 165 165 120 180 85Z"/>
+
+          <path class="land"
+            d="M330 110 L400 95 465 125 520 165
+            545 215 525 260 475 255 450 205
+            410 180 375 130Z"/>
+
+          <path class="land"
+            d="M285 825 L310 805 330 755 350 710
+            335 670 345 620 365 575 375 530
+            355 490 345 455 360 415 390 370
+            420 355 430 390 405 430 390 470
+            400 510 390 550 375 590 370 640
+            380 685 365 730 350 775 325 830Z"/>
+
+          <text x="65" y="100" class="map-label">ภาคเหนือ</text>
+          <text x="490" y="300" class="map-label">ภาคอีสาน</text>
+          <text x="70" y="490" class="map-label">ภาคกลาง</text>
+          <text x="480" y="490" class="map-label">ภาคตะวันออก</text>
+          <text x="440" y="750" class="map-label">ภาคใต้</text>
+
+          <g id="edgeLayer"></g>
+          <g id="routeLayer"></g>
+          <g id="placeLayer"></g>
+
+          <g transform="translate(510,20)">
+            <rect width="175" height="65" rx="10"
+                  fill="white" stroke="#d6e4e8"/>
+            <circle cx="16" cy="19" r="6" fill="#2563eb"/>
+            <text x="30" y="23" class="legend-text">สถานที่</text>
+            <line x1="10" y1="45" x2="25" y2="45"
+                  stroke="#f97316" stroke-width="4"/>
+            <text x="30" y="49" class="legend-text">เส้นทางที่เลือก</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="map-footer">
+        <span>● คลิกจุดเพื่อเลือกต้นทางและปลายทางสลับกัน</span>
+        <button class="reset-btn" onclick="resetMap()">ล้างเส้นทาง</button>
+      </div>
+    </div>
+
+    <aside class="control-card">
+      <h3>ค้นหาเส้นทาง</h3>
+      <p class="muted">กำหนดจุดเริ่มต้นและจุดหมายปลายทาง</p>
+
+      <label for="startPlace">ต้นทาง</label>
+      <select id="startPlace"></select>
+
+      <label for="endPlace">ปลายทาง</label>
+      <select id="endPlace"></select>
+
+      <label for="algorithmSelect">วิธีค้นหาเส้นทาง</label>
+      <select id="algorithmSelect">
+        <option value="dijkstra">Dijkstra - ระยะทางสั้นที่สุด</option>
+        <option value="bfs">BFS - ค้นหาแบบกว้าง</option>
+        <option value="dfs">DFS - ค้นหาแบบลึก</option>
+      </select>
+
+      <button class="search-btn" onclick="findRoute()">ค้นหาเส้นทาง</button>
+      <button class="secondary-btn" onclick="showAllPlaces()">แสดงสถานที่ทั้งหมด</button>
+
+      <div class="result-box">
+        <h4>ผลการค้นหา</h4>
+        <div id="routeResult">เลือกต้นทางและปลายทางเพื่อเริ่มต้น</div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="stats-grid">
+    <div class="stat-card">
+      <span>📍</span>
+      <div><strong id="placeCount">12</strong><small>สถานที่</small></div>
+    </div>
+    <div class="stat-card">
+      <span>🔗</span>
+      <div><strong id="edgeCount">0</strong><small>เส้นเชื่อม</small></div>
+    </div>
+    <div class="stat-card">
+      <span>🛣️</span>
+      <div><strong id="distanceTotal">-</strong><small>ระยะทาง (กม.)</small></div>
+    </div>
+    <div class="stat-card">
+      <span>⏱️</span>
+      <div><strong id="timeTotal">-</strong><small>เวลา (ชม.)</small></div>
+    </div>
+  </section>
+
+  <section id="algorithm" class="info-section">
+    <div class="section-title">
+      <h2>การประยุกต์ใช้ Graph Theory</h2>
+      <p>หลักการคณิตศาสตร์ดิสครีตในเว็บไซต์</p>
+    </div>
+
+    <div class="algorithm-grid">
+      <article class="algorithm-card">
+        <div class="algo-icon">🌐</div>
+        <h3>Graph</h3>
+        <p>Vertex แทนสถานที่ท่องเที่ยว และ Edge แทนเส้นทางเชื่อมระหว่างสถานที่</p>
+      </article>
+      <article class="algorithm-card">
+        <div class="algo-icon">🔍</div>
+        <h3>BFS</h3>
+        <p>ค้นหาแบบกว้าง สำรวจจุดข้างเคียงทีละระดับ</p>
+      </article>
+      <article class="algorithm-card">
+        <div class="algo-icon">🧭</div>
+        <h3>DFS</h3>
+        <p>ค้นหาแบบลึก เดินไปตามเส้นทางก่อนย้อนกลับ</p>
+      </article>
+      <article class="algorithm-card">
+        <div class="algo-icon">⚖️</div>
+        <h3>Weighted Graph</h3>
+        <p>กำหนดน้ำหนักเป็นระยะทาง เวลา และค่าใช้จ่ายในการเดินทาง</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="tree-section">
+    <div class="section-title">
+      <h2>ตัวอย่างแนวคิด Tree</h2>
+      <p>ลำดับสถานที่จากผลการค้นหาเส้นทาง</p>
+    </div>
+    <div id="treeView" class="tree-view">
+      <p class="muted">ค้นหาเส้นทางเพื่อแสดงโครงสร้าง Tree</p>
+    </div>
+  </section>
+
+  <section class="places-section" id="places">
+    <div class="section-title">
+      <h2>สถานที่ท่องเที่ยวทั้งหมด</h2>
+      <p>เลือกสถานที่เพื่อกำหนดเป็นต้นทางหรือปลายทาง</p>
+    </div>
+    <div id="placeCards" class="place-grid"></div>
+  </section>
+</main>
+
+<footer class="footer">
+  <h3>Thai Travel Path Finder</h3>
+  <p>โครงงานคณิตศาสตร์ดิสครีต | Graph Theory</p>
+  <p>แผนที่จำลองสร้างด้วย SVG และ JavaScript</p>
+</footer>
+
+<script src="อาหาร.js"></script>
+</body>
+</html>
